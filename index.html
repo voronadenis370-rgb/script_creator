@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Generator</title>
+    <style>
+        :root {
+            --bg-color: #09090d;
+            --card-bg: rgba(18, 16, 22, 0.75);
+            --card-border: rgba(255, 0, 60, 0.25);
+            --primary: #ff003c;
+            --primary-glow: rgba(255, 0, 60, 0.6);
+            --text-main: #f0f0f5;
+            --text-muted: #8a8a9e;
+            --code-bg: #0d0c12;
+            --accent-green: #00ff88;
+            --accent-blue: #00bfff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 60, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 60, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        /* HEADER */
+        header {
+            background: rgba(12, 10, 16, 0.85);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 15px 20px;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 10px var(--primary-glow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        /* NAV TABS */
+        nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(255, 0, 60, 0.3);
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 0, 60, 0.15);
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow), inset 0 0 8px rgba(255, 0, 60, 0.3);
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s ease-in-out forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CARDS & GLASSMORPHISM */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        /* FORM CONTROLS */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.25s ease-in-out;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 6px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* BUTTONS WITH NEON GLOW */
+        .btn {
+            background: rgba(255, 0, 60, 0.12);
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.4), inset 0 0 10px rgba(255, 0, 60, 0.2);
+            transition: all 0.25s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.8), 0 0 40px rgba(255, 0, 60, 0.4);
+            transform: translateY(-2px);
+            background: rgba(255, 0, 60, 0.25);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff3333;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+            background: rgba(255, 0, 0, 0.3);
+        }
+
+        /* CODE BOX */
+        .code-container {
+            position: relative;
+            background: var(--code-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .code-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            max-height: 400px;
+            font-family: 'Consolas', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #d4d4d4;
+            line-height: 1.5;
+        }
+
+        /* MODULE CARDS IN BUILDER */
+        .module-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 60, 0.15);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        .module-card:hover {
+            border-color: rgba(255, 0, 60, 0.4);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.1);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .module-title {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        /* STATS GRID FOR ANALYZER */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary-glow);
+            margin-top: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* DOCS ACCORDION / CARDS */
+        .doc-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 15px;
+        }
+
+        .doc-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+
+        .doc-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        /* TOAST NOTIFICATION */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .web-toast {
+            background: rgba(18, 16, 22, 0.95);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            animation: slideIn 0.3s forwards, fadeOut 0.3s 2.7s forwards;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header-container { flex-direction: column; align-items: stretch; }
+            nav { justify-content: space-between; }
+            .tab-btn { flex: 1; text-align: center; justify-content: center; padding: 10px 8px; font-size: 0.8rem; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <span>⚡</span> Script Generator for Game Guardian
+            </div>
+            <nav>
+                <button class="tab-btn active" onclick="switchTab('builder')">⚡ Конструктор</button>
+                <button class="tab-btn" onclick="switchTab('analyzer')">🔍 Анализатор</button>
+                <button class="tab-btn" onclick="switchTab('obfuscator')">🔒 Зашифровщик</button>
+                <button class="tab-btn" onclick="switchTab('docs')">📚 Обучение</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+
+        <!-- TAB 1: SCRIPT BUILDER -->
+        <div id="builder-tab" class="tab-content active">
+            
+            <!-- Global Settings -->
+            <div class="card">
+                <div class="card-title">⚙️ Настройки шапки скрипта</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Заголовок Меню</label>
+                        <input type="text" id="cfg-menu-title" value="GG Modding Studio Menu" oninput="updateScript()">
+                    </div>
+                    <div class="form-group">
+                        <label>Имя файла (.lua)</label>
+                        <input type="text" id="cfg-filename" value="script.lua">
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-top: 15px;">
+                    <!-- Startup Greeting Options -->
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="cfg-greeting-enable" onchange="toggleGreetingOpts(); updateScript();">
+                            Стартовое приветствие
+                        </label>
+                        <div id="greeting-options" style="display: none; margin-top: 8px; flex-direction: column; gap: 8px;">
+                            <select id="cfg-greeting-type" onchange="updateScript()">
+                                <option value="toast">Toast (Всплывающее)</option>
+                                <option value="alert">Alert (Диалог)</option>
+                            </select>
+                            <input type="text" id="cfg-greeting-text" value="Добро пожаловать!" placeholder="Текст приветствия" oninput="updateScript()">
+                        </div>
+                    </div>
+
+                    <!-- Startup Sleep Options -->
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="cfg-sleep-enable" onchange="toggleSleepOpts(); updateScript();">
+                            Стартовая задержка
+                        </label>
+                        <div id="sleep-options" style="display: none; margin-top: 8px;">
+                            <input type="number" id="cfg-sleep-time" value="1000" placeholder="Время в мс" oninput="updateScript()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cheat Modules Dynamic Area -->
+            <div class="card">
+                <div class="card-title" style="justify-content: space-between;">
+                    <span>🎯 Чит-Модули (Функции)</span>
+                    <button class="btn" onclick="addModule()">+ Добавить функцию</button>
+                </div>
+                <div id="modules-container">
+                    <!-- Modules will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Export Block -->
+            <div class="card">
+                <div class="card-title">📄 Готовый Lua-Код</div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn" onclick="copyGeneratedCode()">⎘ Копировать код</button>
+                    <button class="btn btn-secondary" onclick="downloadGeneratedCode()">⬇ Скачать .lua</button>
+                </div>
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>LUA SCRIPT PREVIEW</span>
+                        <span id="code-line-count">0 строк</span>
+                    </div>
+                    <pre><code id="code-preview">-- Код появится здесь...</code></pre>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 2: SCRIPT ANALYZER -->
+        <div id="analyzer-tab" class="tab-content">
+            <div class="card">
+                <div class="card-title">🔍 Анализ и аудит Lua-скриптов</div>
+                <div class="form-group full-width">
+                    <label>Вставьте ваш Lua-скрипт для анализа</label>
+                    <textarea id="analyzer-input" placeholder="Вставьте код скрипта Game Guardian..."></textarea>
+                </div>
+                <button class="btn" style="margin-top: 15px;" onclick="analyzeScript()">Запустить Анализ</button>
+
+                <div class="stats-grid" id="analyzer-results" style="display: none;">
+                    <div class="stat-card">
+                        <div class="stat-label">Поисков (searchNumber)</div>
+                        <div class="stat-value" id="stat-search">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Замен (editAll)</div>
+                        <div class="stat-value" id="stat-edit">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Установок (setValues)</div>
+                        <div class="stat-value" id="stat-set">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Диалогов (alert)</div>
+                        <div class="stat-value" id="stat-alert">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Уведомлений (toast)</div>
+                        <div class="stat-value" id="stat-toast">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Задержек (sleep)</div>
+                        <div class="stat-value" id="stat-sleep">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Заморозок (freeze)</div>
+                        <div class="stat-value" id="stat-freeze">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: LUA OBFUSCATOR -->
+        <div id="obfuscator-tab" class="tab-content">
+            <div class="card">
+                <div class="card-title">🔒 Шифрование и Обфускация Lua</div>
+                <div class="form-group full-width">
+                    <label>Исходный Lua Код</label>
+                    <textarea id="obfuscator-input" placeholder="Вставьте открытый Lua-код..."></textarea>
+                </div>
+                <button class="btn" style="margin-top: 15px;" onclick="obfuscateCode()">Зашифровать Код</button>
+
+                <div id="obfuscator-output-container" style="display: none; margin-top: 20px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <button class="btn" onclick="copyObfuscatedCode()">Копировать зашифрованный код</button>
+                        <button class="btn btn-secondary" onclick="downloadObfuscatedCode()">Скачать зашифрованный .lua</button>
+                    </div>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>PROTECTED ENCRYPTED CONTAINER</span>
+                        </div>
+                        <pre><code id="obfuscated-preview">-- Результат шифрования появится здесь...</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: DOCS & EDUCATION -->
+        <div id="docs-tab" class="tab-content">
+            <div class="card">
+                <div class="card-title">📚 Расширенный Отдел Обучения Modding GG</div>
+                
+                <div class="doc-item">
+                    <div class="doc-title">1. Сканирование памяти (gg.searchNumber)</div>
+                    <div class="doc-desc">
+                        Функция производит поиск значений в оперативной памяти устройства. Выбор правильного типа данных критически важен:
+                        <br>• <b>DWORD (gg.TYPE_DWORD)</b>: Целые 4-байтовые числа (Патроны, Здоровье, Уровень).
+                        <br>• <b>FLOAT (gg.TYPE_FLOAT)</b>: Дробные числа (Скорость движения, Гравитация, Высота прыжка).
+                        <br>• <b>BYTE (gg.TYPE_BYTE)</b>: Однобайтовые числа и флаги/переключатели (0 или 1, вкл/выкл).
+                        <br>• <b>DOUBLE (gg.TYPE_DOUBLE)</b>: Высокоточные 8-байтовые дробные числа (Игровая валюта в онлайн играх).
+                        <br>Ограничение регионов ОЗУ ускоряет поиск: <code>gg.setRanges(gg.REGION_ANONYMOUS)</code>.
+                    </div>
+                    <div class="code-container">
+                        <pre>gg.setRanges(gg.REGION_ANONYMOUS)
+gg.searchNumber("100", gg.TYPE_DWORD)</pre>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <div class="doc-title">2. Модификация и Заморозка Памяти</div>
+                    <div class="doc-desc">
+                        Массовое редактирование <code>gg.editAll</code> заменяет все найденные адреса. Точечная установка <code>gg.setValues</code> изменяет конкретные адреса в массиве.
+                        Для заморозки значения используется флаг <code>freeze = true</code> в комбинации с регистрацией элементов в памяти через <code>gg.addListItems()</code>.
+                    </div>
+                    <div class="code-container">
+                        <pre>-- Пример заморозки найденных значений
+local r = gg.getResults(100)
+for i, v in ipairs(r) do
+    v.value = '999999'
+    v.freeze = true
+end
+gg.addListItems(r)</pre>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <div class="doc-title">3. Работа со смещениями (Offsets)</div>
+                    <div class="doc-desc">
+                        В структуре памяти связанные параметры (например, X, Y, Z координаты или Здоровье и Броня) находятся на фиксированных расстояниях от базового адреса (baseAddress).
+                        Смещение задается в 16-ричной системе (Hex). Формула применения: <code>item.address + 0xOffset</code>.
+                    </div>
+                    <div class="code-container">
+                        <pre>local r = gg.getResults(1)
+local patches = {}
+table.insert(patches, {
+    address = r[1].address + 0x14, -- Смещение +20 байт
+    flags = gg.TYPE_DWORD,
+    value = 5000
+})
+gg.setValues(patches)</pre>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <div class="doc-title">4. Диалоги, Уведомления и Бесконечный Цикл</div>
+                    <div class="doc-desc">
+                        • <code>gg.toast("текст")</code> — всплывающая подсказка внизу экрана (не ставит игру на паузу).<br>
+                        • <code>gg.alert("текст")</code> — модальное окно с кнопкой OK.<br>
+                        • Бесконечный цикл <code>while true do ... end</code> в связке с <code>gg.isVisible(true)</code> позволяет меню повторно открываться при нажатии на иконку Game Guardian.
+                    </div>
+                    <div class="code-container">
+                        <pre>while true do
+    if gg.isVisible(true) then
+        gg.setVisible(false)
+        MainMenu()
+    end
+    gg.sleep(100)
+end</pre>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <div class="doc-title">5. Тайминги и Защита Скриптов</div>
+                    <div class="doc-desc">
+                        • <code>gg.sleep(ms)</code> — приостанавливает выполнение скрипта на указанное количество миллисекунд. Задержки предотвращают вылеты игры при интенсивных операциях записи в память.<br>
+                        • Защита кода осуществляется превращением исходного текста в Hex-последовательность символов вида <code>\xXX</code> и вызовом динамического компилятора <code>load()()</code>.
+                    </div>
+                    <div class="code-container">
+                        <pre>local code = "\x67\x67\x2e\x74\x6f\x61\x73\x74\x28\x22\x48\x65\x6c\x6c\x6f\x22\x29"
+load(code)()</pre>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let moduleCounter = 0;
+        let modules = [];
+
+        // TAB SWITCHER
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId + '-tab').classList.add('active');
+        }
+
+        // WEB TOAST SYSTEM
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'web-toast';
+            toast.innerHTML = `<span>⚡</span> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // TOGGLE STARTUP CONTROLS
+        function toggleGreetingOpts() {
+            const enabled = document.getElementById('cfg-greeting-enable').checked;
+            document.getElementById('greeting-options').style.display = enabled ? 'flex' : 'none';
+        }
+
+        function toggleSleepOpts() {
+            const enabled = document.getElementById('cfg-sleep-enable').checked;
+            document.getElementById('sleep-options').style.display = enabled ? 'block' : 'none';
+        }
+
+        // ADD CHEAT MODULE
+        function addModule() {
+            moduleCounter++;
+            const id = moduleCounter;
+            
+            const moduleHtml = `
+                <div class="module-card" id="module-${id}">
+                    <div class="module-header">
+                        <span class="module-title">Модуль #${id}</span>
+                        <button class="btn btn-danger" onclick="removeModule(${id})">Удалить</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Название функции (в меню)</label>
+                            <input type="text" id="mod-name-${id}" value="Чит Функция #${id}" oninput="updateScript()">
+                        </div>
+                        <div class="form-group">
+                            <label>Искомое значение (Search)</label>
+                            <input type="text" id="mod-search-${id}" value="100" oninput="updateScript()">
+                        </div>
+                        <div class="form-group">
+                            <label>Тип данных</label>
+                            <select id="mod-type-${id}" onchange="updateScript()">
+                                <option value="TYPE_DWORD">DWORD</option>
+                                <option value="TYPE_FLOAT">FLOAT</option>
+                                <option value="TYPE_BYTE">BYTE</option>
+                                <option value="TYPE_DOUBLE">DOUBLE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Offset / Смещение (Hex)</label>
+                            <input type="text" id="mod-offset-${id}" placeholder="например 0x14 (или пусто)" oninput="updateScript()">
+                        </div>
+                        <div class="form-group">
+                            <label>Новое значение (Edit)</label>
+                            <input type="text" id="mod-edit-${id}" value="9999" oninput="updateScript()">
+                        </div>
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <label class="checkbox-group">
+                                <input type="checkbox" id="mod-freeze-${id}" onchange="updateScript()">
+                                Заморозить значение (Freeze)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Additional Action Checks -->
+                    <div style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px;">
+                        <label style="font-size:0.75rem; color:var(--text-muted);">ДОПОЛНИТЕЛЬНЫЕ ДЕЙСТВИЯ ПРИ ВЫЗОВЕ:</label>
+                        <div class="form-grid" style="margin-top: 8px;">
+                            <div class="form-group">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" id="mod-toast-act-${id}" onchange="toggleModSubOpts(${id}); updateScript();"> Toast
+                                </label>
+                                <input type="text" id="mod-toast-txt-${id}" placeholder="Текст Toast" value="Активировано!" style="display:none; margin-top:5px;" oninput="updateScript()">
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" id="mod-alert-act-${id}" onchange="toggleModSubOpts(${id}); updateScript();"> Alert
+                                </label>
+                                <input type="text" id="mod-alert-txt-${id}" placeholder="Текст Alert" value="Функция успешно сработала" style="display:none; margin-top:5px;" oninput="updateScript()">
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" id="mod-sleep-act-${id}" onchange="toggleModSubOpts(${id}); updateScript();"> Sleep
+                                </label>
+                                <input type="number" id="mod-sleep-val-${id}" placeholder="мс" value="500" style="display:none; margin-top:5px;" oninput="updateScript()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modules-container').insertAdjacentHTML('beforeend', moduleHtml);
+            modules.push(id);
+            updateScript();
+        }
+
+        function removeModule(id) {
+            document.getElementById(`module-${id}`).remove();
+            modules = modules.filter(mId => mId !== id);
+            updateScript();
+        }
+
+        function toggleModSubOpts(id) {
+            const tAct = document.getElementById(`mod-toast-act-${id}`).checked;
+            const aAct = document.getElementById(`mod-alert-act-${id}`).checked;
+            const sAct = document.getElementById(`mod-sleep-act-${id}`).checked;
+
+            document.getElementById(`mod-toast-txt-${id}`).style.display = tAct ? 'block' : 'none';
+            document.getElementById(`mod-alert-txt-${id}`).style.display = aAct ? 'block' : 'none';
+            document.getElementById(`mod-sleep-val-${id}`).style.display = sAct ? 'block' : 'none';
+        }
+
+        // GENERATE LUA SCRIPT CODE
+        function generateLuaCode() {
+            const menuTitle = document.getElementById('cfg-menu-title').value || 'GG Studio';
+            const greetingEnable = document.getElementById('cfg-greeting-enable').checked;
+            const greetingType = document.getElementById('cfg-greeting-type').value;
+            let greetingText = document.getElementById('cfg-greeting-text').value;
+
+            const sleepEnable = document.getElementById('cfg-sleep-enable').checked;
+            const sleepTime = document.getElementById('cfg-sleep-time').value;
+
+            let code = `-- Generated by Script Generator for Game Guardian\n\n`;
+
+            // Startup Greeting (STRICTLY UNIQUE PLACE for "by Padington")
+            if (greetingEnable && greetingText.trim() !== '') {
+                const fullGreeting = `${greetingText} by Padington`;
+                if (greetingType === 'toast') {
+                    code += `gg.toast("${fullGreeting}")\n`;
+                } else if (greetingType === 'alert') {
+                    code += `gg.alert("${fullGreeting}")\n`;
+                }
+            }
+
+            // Startup Sleep
+            if (sleepEnable && sleepTime) {
+                code += `gg.sleep(${sleepTime})\n`;
+            }
+
+            code += `\n`;
+
+            // Individual Module Functions
+            modules.forEach((id, index) => {
+                const name = document.getElementById(`mod-name-${id}`).value || `Function ${index + 1}`;
+                const searchVal = document.getElementById(`mod-search-${id}`).value;
+                const dataType = document.getElementById(`mod-type-${id}`).value;
+                const offset = document.getElementById(`mod-offset-${id}`).value.trim();
+                const editVal = document.getElementById(`mod-edit-${id}`).value;
+                const isFreeze = document.getElementById(`mod-freeze-${id}`).checked;
+
+                const hasToast = document.getElementById(`mod-toast-act-${id}`).checked;
+                const toastTxt = document.getElementById(`mod-toast-txt-${id}`).value;
+                const hasAlert = document.getElementById(`mod-alert-act-${id}`).checked;
+                const alertTxt = document.getElementById(`mod-alert-txt-${id}`).value;
+                const hasSleep = document.getElementById(`mod-sleep-act-${id}`).checked;
+                const sleepVal = document.getElementById(`mod-sleep-val-${id}`).value;
+
+                code += `function mod_func_${id}()\n`;
+
+                if (hasToast && toastTxt) code += `  gg.toast("${toastTxt}")\n`;
+                if (hasAlert && alertTxt) code += `  gg.alert("${alertTxt}")\n`;
+                if (hasSleep && sleepVal) code += `  gg.sleep(${sleepVal})\n`;
+
+                if (searchVal) {
+                    code += `  gg.clearResults()\n`;
+                    code += `  gg.searchNumber("${searchVal}", gg.${dataType})\n`;
+                    code += `  local count = gg.getResultCount()\n`;
+                    code += `  if count > 0 then\n`;
+                    code += `    local r = gg.getResults(100)\n`;
+
+                    if (!offset || offset === '0' || offset === '0x0') {
+                        // Direct Edit / EditAll
+                        if (isFreeze) {
+                            code += `    for i, v in ipairs(r) do\n`;
+                            code += `      v.value = '${editVal}'\n`;
+                            code += `      v.freeze = true\n`;
+                            code += `    end\n`;
+                            code += `    gg.addListItems(r)\n`;
+                        } else {
+                            code += `    gg.editAll("${editVal}", gg.${dataType})\n`;
+                        }
+                    } else {
+                        // Offset Patching
+                        code += `    local patches = {}\n`;
+                        code += `    for i, v in ipairs(r) do\n`;
+                        code += `      table.insert(patches, {\n`;
+                        code += `        address = v.address + ${offset},\n`;
+                        code += `        flags = gg.${dataType},\n`;
+                        code += `        value = '${editVal}',\n`;
+                        if (isFreeze) code += `        freeze = true\n`;
+                        code += `      })\n`;
+                        code += `    end\n`;
+                        if (isFreeze) {
+                            code += `    gg.addListItems(patches)\n`;
+                        } else {
+                            code += `    gg.setValues(patches)\n`;
+                        }
+                    }
+
+                    code += `    gg.toast("Успешно применено!")\n`;
+                    code += `  else\n`;
+                    code += `    gg.toast("Значения не найдены!")\n`;
+                    code += `  end\n`;
+                }
+
+                code += `end\n\n`;
+            });
+
+            // Main Menu Structure
+            code += `function MainMenu()\n`;
+            code += `  local menu = gg.choice({\n`;
+            modules.forEach((id, index) => {
+                const name = document.getElementById(`mod-name-${id}`).value || `Function ${index + 1}`;
+                code += `    "${name}",\n`;
+            });
+            code += `    "❌ Выход"\n`;
+            code += `  }, nil, "${menuTitle}")\n\n`;
+
+            code += `  if menu == nil then return end\n`;
+            modules.forEach((id, index) => {
+                code += `  if menu == ${index + 1} then mod_func_${id}() end\n`;
+            });
+            code += `  if menu == ${modules.length + 1} then os.exit() end\n`;
+            code += `end\n\n`;
+
+            // Infinite Main Loop
+            code += `while true do\n`;
+            code += `  if gg.isVisible(true) then\n`;
+            code += `    gg.setVisible(false)\n`;
+            code += `    MainMenu()\n`;
+            code += `  end\n`;
+            code += `  gg.sleep(100)\n`;
+            code += `end\n`;
+
+            return code;
+        }
+
+        function updateScript() {
+            const code = generateLuaCode();
+            document.getElementById('code-preview').textContent = code;
+            const lineCount = code.split('\n').length;
+            document.getElementById('code-line-count').textContent = `${lineCount} строк`;
+        }
+
+        function copyGeneratedCode() {
+            const code = generateLuaCode();
+            navigator.clipboard.writeText(code).then(() => showToast('Код успешно скопирован!'));
+        }
+
+        function downloadGeneratedCode() {
+            const code = generateLuaCode();
+            let fileName = document.getElementById('cfg-filename').value.trim();
+            if (!fileName.endsWith('.lua')) fileName += '.lua';
+
+            const blob = new Blob([code], { type: 'application/x-lua;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast(`Файл ${fileName} скачан!`);
+        }
+
+        // SCRIPT ANALYZER LOGIC
+        function analyzeScript() {
+            const code = document.getElementById('analyzer-input').value;
+            if (!code.trim()) {
+                showToast('Вставьте код для анализа!');
+                return;
+            }
+
+            const searchCount = (code.match(/gg\.searchNumber\s*\(/g) || []).length;
+            const editCount = (code.match(/gg\.editAll\s*\(/g) || []).length;
+            const setCount = (code.match(/gg\.setValues\s*\(/g) || []).length;
+            const alertCount = (code.match(/gg\.alert\s*\(/g) || []).length;
+            const toastCount = (code.match(/gg\.toast\s*\(/g) || []).length;
+            const sleepCount = (code.match(/gg\.sleep\s*\(/g) || []).length;
+            const freezeCount = (code.match(/freeze\s*=\s*true/g) || []).length;
+
+            document.getElementById('stat-search').textContent = searchCount;
+            document.getElementById('stat-edit').textContent = editCount;
+            document.getElementById('stat-set').textContent = setCount;
+            document.getElementById('stat-alert').textContent = alertCount;
+            document.getElementById('stat-toast').textContent = toastCount;
+            document.getElementById('stat-sleep').textContent = sleepCount;
+            document.getElementById('stat-freeze').textContent = freezeCount;
+
+            document.getElementById('analyzer-results').style.display = 'grid';
+            showToast('Анализ завершен!');
+        }
+
+        // LUA OBFUSCATOR LOGIC
+        function obfuscateCode() {
+            const input = document.getElementById('obfuscator-input').value;
+            if (!input.trim()) {
+                showToast('Введите код для зашифровки!');
+                return;
+            }
+
+            // HEX Escaping Engine
+            let hexEncoded = '';
+            for (let i = 0; i < input.length; i++) {
+                const code = input.charCodeAt(i);
+                if (code < 128) {
+                    hexEncoded += '\\x' + code.toString(16).padStart(2, '0');
+                } else {
+                    // UTF-8 Multibyte encoding to Hex
+                    const bytes = new TextEncoder().encode(input[i]);
+                    bytes.forEach(b => {
+                        hexEncoded += '\\x' + b.toString(16).padStart(2, '0');
+                    });
+                }
+            }
+
+            const obfuscatedResult = `local code = "${hexEncoded}"; load(code)();`;
+
+            document.getElementById('obfuscated-preview').textContent = obfuscatedResult;
+            document.getElementById('obfuscator-output-container').style.display = 'block';
+            showToast('Код успешно зашифрован!');
+        }
+
+        function copyObfuscatedCode() {
+            const code = document.getElementById('obfuscated-preview').textContent;
+            navigator.clipboard.writeText(code).then(() => showToast('Зашифрованный код скопирован!'));
+        }
+
+        function downloadObfuscatedCode() {
+            const code = document.getElementById('obfuscated-preview').textContent;
+            const blob = new Blob([code], { type: 'application/x-lua;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'protected_script.lua';
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('Зашифрованный .lua скачан!');
+        }
+
+        // INITIALIZATION
+        window.onload = function() {
+            addModule(); // Add initial module on load
+        };
+    </script>
+</body>
+</html>
