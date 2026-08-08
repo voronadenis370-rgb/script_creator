@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Script Generator for Game Guardian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07070b;
+  --bg2: #0c0b12;
+  --card: rgba(18, 16, 26, 0.78);
+  --card-solid: #12101a;
+  --border: rgba(255, 0, 60, 0.18);
+  --border-hover: rgba(255, 0, 60, 0.45);
+  --neon: #ff003c;
+  --neon2: #ff4d6d;
+  --neon-glow: rgba(255, 0, 60, 0.55);
+  --text: #f0eef6;
+  --muted: #9b98ab;
+  --input: #0b0a10;
+  --success: #00e676;
+  --info: #00b0ff;
+  --purple: #b388ff;
+  --radius: 14px;
+  --font: 'Inter', system-ui, sans-serif;
+  --display: 'Orbitron', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 500;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 60% at 10% -20%, rgba(255, 0, 60, 0.16), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 95% 5%, rgba(140, 0, 50, 0.1), transparent 45%),
+    radial-gradient(ellipse 50% 40% at 50% 110%, rgba(255, 0, 60, 0.07), transparent 50%),
+    var(--bg);
+  z-index: -2;
+  pointer-events: none;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,0,60,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,0,60,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  z-index: -1;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent);
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(7, 7, 11, 0.82);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: default;
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(145deg, #ff003c, #a00028);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  box-shadow: 0 0 20px var(--neon-glow), inset 0 1px 0 rgba(255,255,255,0.2);
+  animation: logoPulse 3.5s ease-in-out infinite;
+  position: relative;
+}
+
+.logo-icon::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,0,60,0.35);
+  animation: logoRing 3.5s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%, 100% { box-shadow: 0 0 18px var(--neon-glow), inset 0 1px 0 rgba(255,255,255,0.2); }
+  50% { box-shadow: 0 0 32px rgba(255,0,60,0.75), inset 0 1px 0 rgba(255,255,255,0.25); }
+}
+
+@keyframes logoRing {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+.logo-text {
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(105deg, #fff 20%, #ff8a9e 60%, #ff003c 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textShine 5s linear infinite;
+}
+
+@keyframes textShine {
+  to { background-position: 200% center; }
+}
+
+.logo-sub {
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: rgba(0,0,0,0.35);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 9px 16px;
+  border-radius: 9px;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,0,60,0.2), rgba(255,0,60,0.05));
+  opacity: 0;
+  transition: opacity 0.28s;
+}
+
+.tab-btn:hover { color: var(--text); }
+.tab-btn:hover::before { opacity: 1; }
+
+.tab-btn.active {
+  color: #fff;
+  background: rgba(255, 0, 60, 0.18);
+  box-shadow: 0 0 16px rgba(255,0,60,0.25), inset 0 0 12px rgba(255,0,60,0.08);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--neon);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--neon);
+}
+
+.main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 16px 80px;
+}
+
+.panel {
+  display: none;
+  animation: panelIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel.active { display: block; }
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  margin-bottom: 18px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,0,60,0.4), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 30px rgba(255,0,60,0.06);
+}
+
+.card:hover::before { opacity: 1; }
+
+.card-title {
+  font-family: var(--display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+
+.card-title .icon {
+  font-size: 1.15rem;
+  filter: drop-shadow(0 0 6px var(--neon-glow));
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  background: var(--input);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 11px 13px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 0 3px rgba(255,0,60,0.18), 0 0 16px rgba(255,0,60,0.1);
+  background: #0e0c14;
+}
+
+textarea {
+  min-height: 130px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.checkbox-row, .radio-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.checkbox-row label, .radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  transition: color 0.2s;
+}
+
+.checkbox-row label:hover, .radio-group label:hover { color: var(--neon2); }
+
+input[type="checkbox"], input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--neon);
+  cursor: pointer;
+}
+
+.btn {
+  --btn-bg: linear-gradient(135deg, #ff003c 0%, #d40032 50%, #ff1a4d 100%);
+  position: relative;
+  background: var(--btn-bg);
+  background-size: 200% 200%;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-family: var(--font);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+  box-shadow: 0 0 18px rgba(255,0,60,0.4), 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transition: left 0.5s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 28px rgba(255,0,60,0.65), 0 0 50px rgba(255,0,60,0.25), 0 6px 16px rgba(0,0,0,0.35);
+  animation: btnGlow 1.2s ease infinite;
+}
+
+.btn:hover::before { left: 140%; }
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@keyframes btnGlow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  background: rgba(255,0,60,0.12);
+  border-color: var(--neon);
+  box-shadow: 0 0 18px rgba(255,0,60,0.3);
+  animation: none;
+  filter: none;
+}
+
+.btn-sm {
+  padding: 8px 15px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px dashed rgba(255,0,60,0.35);
+  box-shadow: none;
+  color: var(--neon2);
+}
+
+.btn-ghost:hover {
+  background: rgba(255,0,60,0.1);
+  border-style: solid;
+  box-shadow: 0 0 14px rgba(255,0,60,0.25);
+  animation: none;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.modules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.module-card {
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(255,0,60,0.12);
+  border-radius: 12px;
+  padding: 16px;
+  animation: moduleIn 0.35s cubic-bezier(0.22,1,0.36,1);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.module-card:hover {
+  border-color: rgba(255,0,60,0.3);
+  box-shadow: 0 0 20px rgba(255,0,60,0.08);
+}
+
+@keyframes moduleIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.module-num {
+  font-family: var(--display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--neon);
+  background: rgba(255,0,60,0.12);
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 10px rgba(255,0,60,0.15);
+}
+
+.remove-btn {
+  background: transparent;
+  border: 1px solid rgba(255,60,60,0.3);
+  color: #ff7a7a;
+  border-radius: 7px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  background: rgba(255,40,40,0.15);
+  border-color: #ff5252;
+  box-shadow: 0 0 12px rgba(255,50,50,0.25);
+}
+
+.optional-block {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(255,255,255,0.06);
+}
+
+.optional-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+  flex-wrap: wrap;
+}
+
+.optional-item input[type="text"],
+.optional-item input[type="number"] {
+  flex: 1;
+  min-width: 130px;
+  padding: 8px 11px;
+  font-size: 0.85rem;
+}
+
+.code-preview {
+  background: #08070c;
+  border: 1px solid rgba(255,0,60,0.14);
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #c9c6d4;
+  overflow-x: auto;
+  max-height: 440px;
+  white-space: pre;
+  tab-size: 2;
+  position: relative;
+}
+
+.code-preview::after {
+  content: 'LUA';
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(255,0,60,0.35);
+  font-family: var(--display);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  background: rgba(0,0,0,0.32);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 18px 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  border-color: var(--neon);
+  box-shadow: 0 0 18px rgba(255,0,60,0.15);
+  transform: translateY(-3px);
+}
+
+.stat-icon { font-size: 1.5rem; margin-bottom: 6px; }
+.stat-value {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--neon);
+  text-shadow: 0 0 12px rgba(255,0,60,0.4);
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.docs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 22px;
+}
+
+.docs-nav button {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: var(--muted);
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.docs-nav button:hover,
+.docs-nav button.active {
+  color: #fff;
+  border-color: var(--neon);
+  background: rgba(255,0,60,0.14);
+  box-shadow: 0 0 14px rgba(255,0,60,0.2);
+}
+
+.doc-section { display: none; animation: panelIn 0.35s ease; }
+.doc-section.active { display: block; }
+
+.doc-section h3 {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.doc-section p {
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.doc-section ul, .doc-section ol {
+  margin: 0 0 14px 20px;
+  color: var(--muted);
+  line-height: 1.75;
+  font-size: 0.88rem;
+}
+
+.doc-section code {
+  background: rgba(255,0,60,0.12);
+  color: #ff8fa3;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 0.84em;
+}
+
+.doc-code {
+  background: #08070c;
+  border: 1px solid rgba(255,0,60,0.12);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: #c9c6d4;
+  overflow-x: auto;
+  margin: 12px 0 18px;
+  white-space: pre;
+}
+
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.template-card {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.28s;
+  text-align: center;
+}
+
+.template-card:hover {
+  border-color: var(--neon);
+  box-shadow: 0 0 20px rgba(255,0,60,0.18);
+  transform: translateY(-4px);
+}
+
+.template-card .t-icon { font-size: 1.8rem; margin-bottom: 8px; }
+.template-card .t-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+.template-card .t-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.notify {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--card-solid);
+  border: 1px solid var(--neon);
+  color: #fff;
+  padding: 13px 22px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: 0 0 28px var(--neon-glow);
+  z-index: 9999;
+  transform: translateY(90px) scale(0.95);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+}
+
+.notify.show {
+  transform: none;
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+  .tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn { padding: 8px 13px; font-size: 0.78rem; }
+  .main { padding: 18px 12px 60px; }
+  .card { padding: 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .btn-row { flex-direction: column; }
+  .btn { width: 100%; }
+  .logo-text { font-size: 0.85rem; }
+}
+
+@media (max-width: 420px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .templates-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">GG</div>
+    <div>
+      <div class="logo-text">Script Generator for Game Guardian</div>
+      <div class="logo-sub">Professional Lua Toolkit</div>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="builder">⚡ Конструктор</button>
+    <button class="tab-btn" data-tab="templates">🧩 Шаблоны</button>
+    <button class="tab-btn" data-tab="analyzer">🔍 Анализатор</button>
+    <button class="tab-btn" data-tab="obfuscator">🔒 Шифровщик</button>
+    <button class="tab-btn" data-tab="docs">📚 Обучение</button>
+  </nav>
+</header>
+
+<main class="main">
+
+  <section class="panel active" id="panel-builder">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">⚙️</span> Настройки скрипта</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Заголовок меню</label>
+          <input type="text" id="menuTitle" value="GG Script Menu" placeholder="Заголовок gg.choice">
+        </div>
+        <div class="form-group">
+          <label>Имя файла</label>
+          <input type="text" id="fileName" value="script.lua" placeholder="script.lua">
+        </div>
+        <div class="form-group">
+          <label>Регион памяти (setRanges)</label>
+          <select id="memRange">
+            <option value="">Не указывать</option>
+            <option value="gg.REGION_ANONYMOUS">ANONYMOUS</option>
+            <option value="gg.REGION_C_ALLOC">C_ALLOC</option>
+            <option value="gg.REGION_C_DATA">C_DATA</option>
+            <option value="gg.REGION_C_BSS">C_BSS</option>
+            <option value="gg.REGION_JAVA">JAVA</option>
+            <option value="gg.REGION_OTHER">OTHER</option>
+            <option value="gg.REGION_ANONYMOUS | gg.REGION_C_ALLOC">ANONYMOUS + C_ALLOC</option>
+            <option value="-1">Все регионы (-1)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Лимит результатов</label>
+          <input type="number" id="resultsLimit" value="100" min="1" max="10000" step="10">
+        </div>
+      </div>
+
+      <div style="margin-top:18px">
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="enableGreeting" checked> Стартовое приветствие</label>
+        </div>
+        <div id="greetingOptions" style="margin-top:10px">
+          <div class="radio-group" style="margin-bottom:10px">
+            <label><input type="radio" name="greetType" value="toast" checked> Toast</label>
+            <label><input type="radio" name="greetType" value="alert"> Alert</label>
+          </div>
+          <div class="form-group">
+            <label>Текст приветствия</label>
+            <input type="text" id="greetText" value="Скрипт успешно загружен!" placeholder="Текст">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="enableSleep"> Стартовая задержка</label>
+          <label><input type="checkbox" id="enableClear" checked> gg.clearResults() в начале</label>
+          <label><input type="checkbox" id="enableHide"> Скрывать GG (gg.setVisible)</label>
+        </div>
+        <div id="sleepOptions" style="margin-top:10px;display:none">
+          <div class="form-group" style="max-width:180px">
+            <label>Задержка (мс)</label>
+            <input type="number" id="sleepMs" value="400" min="0" step="50">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <span><span class="icon">🧩</span> Чит-модули</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" id="addModuleBtn">+ Функция</button>
+          <button class="btn btn-sm btn-ghost" id="addSpeedBtn">⚡ Speedhack</button>
+          <button class="btn btn-sm btn-ghost" id="addCustomBtn">📝 Custom Lua</button>
+        </div>
+      </div>
+      <div class="modules-list" id="modulesList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📤</span> Экспорт</div>
+      <div class="code-preview" id="codePreview">-- Код появится здесь</div>
+      <div class="btn-row">
+        <button class="btn" id="copyCodeBtn">⎘ Копировать</button>
+        <button class="btn btn-secondary" id="downloadBtn">⬇ Скачать .lua</button>
+        <button class="btn btn-secondary" id="refreshCodeBtn">↻ Обновить</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-templates">
+    <div class="card">
+      <div class="card-title"><span class="icon">🧩</span> Готовые шаблоны</div>
+      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:16px">Нажмите на шаблон — он добавится в конструктор как новый модуль.</p>
+      <div class="templates-grid" id="templatesGrid"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-analyzer">
+    <div class="card">
+      <div class="card-title"><span class="icon">🔍</span> Анализатор скриптов</div>
+      <div class="form-group">
+        <label>Вставьте Lua-код</label>
+        <textarea id="analyzerInput" placeholder="-- Вставьте код Game Guardian..."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="analyzeBtn">Анализировать</button>
+        <button class="btn btn-secondary" id="clearAnalyzeBtn">Очистить</button>
+      </div>
+    </div>
+    <div class="card" id="analyzerResults" style="display:none">
+      <div class="card-title"><span class="icon">📊</span> Статистика</div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div id="analyzeTips" style="margin-top:18px"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-obfuscator">
+    <div class="card">
+      <div class="card-title"><span class="icon">🔒</span> Шифровщик / Обфускатор</div>
+      <div class="form-group">
+        <label>Исходный код</label>
+        <textarea id="obfInput" placeholder="-- Открытый Lua-код..."></textarea>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label>Уровень</label>
+        <select id="obfLevel">
+          <option value="hex">Hex (\xXX) + load()</option>
+          <option value="hexmin">Hex + удаление комментариев</option>
+          <option value="double">Двойной Hex (вложенный load)</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="obfuscateBtn">Зашифровать</button>
+        <button class="btn btn-secondary" id="clearObfBtn">Очистить</button>
+      </div>
+    </div>
+    <div class="card" id="obfResultCard" style="display:none">
+      <div class="card-title"><span class="icon">🔐</span> Результат</div>
+      <div class="code-preview" id="obfPreview" style="max-height:380px"></div>
+      <div class="btn-row">
+        <button class="btn" id="copyObfBtn">⎘ Копировать</button>
+        <button class="btn btn-secondary" id="downloadObfBtn">⬇ Скачать .lua</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-docs">
+    <div class="card">
+      <div class="card-title"><span class="icon">📚</span> База знаний Game Guardian</div>
+      <div class="docs-nav" id="docsNav">
+        <button class="active" data-doc="search">Поиск</button>
+        <button data-doc="modify">Редактирование</button>
+        <button data-doc="offsets">Смещения</button>
+        <button data-doc="dialogs">Диалоги</button>
+        <button data-doc="timing">Тайминги</button>
+        <button data-doc="ranges">Регионы</button>
+        <button data-doc="speed">Speedhack</button>
+        <button data-doc="advanced">Продвинутое</button>
+        <button data-doc="protect">Защита</button>
+      </div>
+
+      <div class="doc-section active" id="doc-search">
+        <h3>🔍 Поиск в памяти</h3>
+        <p><code>gg.searchNumber(text, type [, encrypted, sign, memoryFrom, memoryTo])</code> — основной метод поиска.</p>
+        <p><strong>Типы:</strong></p>
+        <ul>
+          <li><code>gg.TYPE_BYTE</code> (1) — флаги, маленькие счётчики</li>
+          <li><code>gg.TYPE_WORD</code> (2) — 2 байта</li>
+          <li><code>gg.TYPE_DWORD</code> (4) — патроны, очки, HP (целые)</li>
+          <li><code>gg.TYPE_FLOAT</code> (16) — скорость, гравитация, координаты</li>
+          <li><code>gg.TYPE_QWORD</code> (32) — большие целые</li>
+          <li><code>gg.TYPE_DOUBLE</code> (64) — точная валюта, double-координаты</li>
+          <li><code>gg.TYPE_XOR</code> — зашифрованные значения</li>
+          <li><code>gg.TYPE_BYTE | gg.TYPE_WORD | ...</code> — комбинированный поиск</li>
+        </ul>
+        <p><strong>Уточнение поиска:</strong> <code>gg.refineNumber(text, type)</code> — фильтрует уже найденные результаты.</p>
+        <div class="doc-code">gg.setRanges(gg.REGION_ANONYMOUS)
+gg.searchNumber("100;50;25::", gg.TYPE_DWORD)  -- group search
+gg.refineNumber("100", gg.TYPE_DWORD)
+local count = gg.getResultsCount()
+local r = gg.getResults(100)</div>
+      </div>
+
+      <div class="doc-section" id="doc-modify">
+        <h3>✏️ Редактирование и заморозка</h3>
+        <p><code>gg.editAll(value, type)</code> — меняет все текущие результаты.</p>
+        <p><code>gg.setValues(table)</code> — точечная запись по адресам.</p>
+        <p><code>gg.getValues(table)</code> — чтение текущих значений по адресам.</p>
+        <p><strong>Заморозка:</strong> добавьте <code>freeze = true</code> (или <code>freezeType</code>) и вызовите <code>gg.addListItems(t)</code>.</p>
+        <div class="doc-code">local t = {}
+for i, v in ipairs(r) do
+  t[i] = {
+    address = v.address,
+    flags = gg.TYPE_DWORD,
+    value = 9999,
+    freeze = true
+  }
+end
+gg.setValues(t)
+gg.addListItems(t)
+gg.clearResults()</div>
+      </div>
+
+      <div class="doc-section" id="doc-offsets">
+        <h3>📐 Смещения (Offsets)</h3>
+        <p>Структуры в памяти: найдя base-адрес, вычисляете соседние поля.</p>
+        <p>Формула: <code>address = base + 0xOffset</code></p>
+        <div class="doc-code">gg.searchNumber("100", gg.TYPE_DWORD)
+local r = gg.getResults(20)
+local patches = {}
+for i, v in ipairs(r) do
+  patches[i] = {
+    address = v.address + 0x14,  -- offset 0x14
+    flags = gg.TYPE_DWORD,
+    value = 99999
+  }
+end
+gg.setValues(patches)</div>
+        <p>Часто используют цепочки указателей (pointer chains) для стабильных адресов между перезапусками.</p>
+      </div>
+
+      <div class="doc-section" id="doc-dialogs">
+        <h3>💬 Диалоги и меню</h3>
+        <p><code>gg.toast(text)</code> — неблокирующее уведомление.</p>
+        <p><code>gg.alert(text [, positive, negative, neutral])</code> — модальный диалог.</p>
+        <p><code>gg.choice(items, selected, message)</code> — список выбора (возвращает индекс 1-based или nil).</p>
+        <p><code>gg.prompt(fields, defaults, types)</code> — ввод значений пользователем.</p>
+        <div class="doc-code">while true do
+  local ch = gg.choice({"Патроны","Скорость","Выход"}, nil, "Меню")
+  if ch == nil then
+  elseif ch == 3 then break
+  elseif ch == 1 then
+    -- ...
+  end
+end</div>
+      </div>
+
+      <div class="doc-section" id="doc-timing">
+        <h3>⏱️ Тайминги</h3>
+        <p><code>gg.sleep(ms)</code> — пауза потока. Нужна после поиска/записи на больших списках, чтобы избежать крашей и дать игре обновить память.</p>
+        <div class="doc-code">gg.searchNumber("50", gg.TYPE_FLOAT)
+gg.sleep(250)
+gg.editAll("999", gg.TYPE_FLOAT)
+gg.toast("Готово")</div>
+      </div>
+
+      <div class="doc-section" id="doc-ranges">
+        <h3>🗺️ Регионы памяти</h3>
+        <ul>
+          <li><code>gg.REGION_ANONYMOUS</code> — динамические данные (самый частый выбор)</li>
+          <li><code>gg.REGION_C_ALLOC</code> — malloc/куча</li>
+          <li><code>gg.REGION_C_DATA</code> / <code>C_BSS</code> — статика</li>
+          <li><code>gg.REGION_JAVA</code> / <code>JAVA_HEAP</code> — Java-куча</li>
+          <li><code>gg.REGION_CODE_APP</code> / <code>CODE_SYS</code> — код (осторожно)</li>
+          <li><code>gg.REGION_PPSSPP</code>, <code>REGION_VIDEO</code> и др.</li>
+        </ul>
+        <p>Комбинирование: <code>gg.setRanges(gg.REGION_ANONYMOUS | gg.REGION_C_ALLOC)</code></p>
+      </div>
+
+      <div class="doc-section" id="doc-speed">
+        <h3>⚡ Speedhack</h3>
+        <p><code>gg.setSpeed(speed)</code> — множитель скорости игры (1.0 = норма, 2.0 = x2, 0.5 = замедление).</p>
+        <div class="doc-code">gg.setSpeed(3.0)   -- ускорение x3
+gg.sleep(5000)
+gg.setSpeed(1.0)   -- вернуть нормальную скорость</div>
+        <p>Работает не во всех играх (зависит от способа отсчёта времени в движке).</p>
+      </div>
+
+      <div class="doc-section" id="doc-advanced">
+        <h3>🚀 Продвинутые возможности</h3>
+        <ul>
+          <li><code>gg.getTargetInfo()</code> — информация о процессе</li>
+          <li><code>gg.getFile()</code> / <code>gg.getLine()</code> — путь и строка скрипта</li>
+          <li><code>gg.copyMemory(from, to, size)</code> — копирование памяти</li>
+          <li><code>gg.searchPointer(maxOffset)</code> — поиск указателей</li>
+          <li><code>gg.loadResults(table)</code> / <code>gg.saveList()</code> — работа со списками</li>
+          <li><code>gg.makeRequest(url)</code> — HTTP-запросы (для обновлений скрипта)</li>
+          <li><code>gg.setVisible(false)</code> — скрыть интерфейс GG</li>
+          <li><code>gg.processKill()</code> / <code>gg.processToggle()</code></li>
+          <li>Hex-поиск: <code>gg.searchNumber("h 48 8B 05", gg.TYPE_BYTE)</code></li>
+        </ul>
+        <div class="doc-code">local info = gg.getTargetInfo()
+gg.toast(info.packageName .. " pid:" .. info.pid)
+gg.setVisible(false)  -- спрятать GG</div>
+      </div>
+
+      <div class="doc-section" id="doc-protect">
+        <h3>🛡️ Защита кода</h3>
+        <p>Базовая обфускация — перевод исходника в hex-строку и выполнение через <code>load()</code>.</p>
+        <div class="doc-code">local code = "\x67\x67\x2e\x74\x6f\x61\x73\x74\x28\x22\x48\x69\x22\x29"
+load(code)()</div>
+        <p>Можно вкладывать load несколько раз, удалять комментарии и пробелы. Это не криптография, но сильно усложняет чтение скрипта «на глаз».</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="notify" id="notify"></div>
+
+<script>
+(function(){
+'use strict';
+
+const tabBtns = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.panel');
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+function notify(msg) {
+  const el = document.getElementById('notify');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2300);
+}
+
+let modules = [];
+let mid = 0;
+const listEl = document.getElementById('modulesList');
+const preview = document.getElementById('codePreview');
+
+document.getElementById('enableGreeting').addEventListener('change', function(){
+  document.getElementById('greetingOptions').style.display = this.checked ? 'block' : 'none';
+  gen();
+});
+document.getElementById('enableSleep').addEventListener('change', function(){
+  document.getElementById('sleepOptions').style.display = this.checked ? 'block' : 'none';
+  gen();
+});
+['menuTitle','fileName','greetText','sleepMs','resultsLimit','memRange'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', gen);
+  if (el) el.addEventListener('change', gen);
+});
+document.querySelectorAll('input[name="greetType"]').forEach(r => r.addEventListener('change', gen));
+document.getElementById('enableClear').addEventListener('change', gen);
+document.getElementById('enableHide').addEventListener('change', gen);
+
+document.getElementById('addModuleBtn').onclick = () => addMod();
+document.getElementById('addSpeedBtn').onclick = () => addMod({
+  kind: 'speed', name: 'Speedhack x2', speed: 2.0, toast: true, toastText: 'Скорость изменена'
+});
+document.getElementById('addCustomBtn').onclick = () => addMod({
+  kind: 'custom', name: 'Custom код', customCode: '-- ваш код\ngg.toast("Custom")'
+});
+
+function addMod(data = {}) {
+  const id = ++mid;
+  const m = {
+    id,
+    kind: data.kind || 'search',
+    name: data.name || 'Новая функция',
+    searchValue: data.searchValue || '100',
+    dataType: data.dataType || 'DWORD',
+    offset: data.offset || '',
+    editValue: data.editValue || '9999',
+    freeze: !!data.freeze,
+    refine: data.refine || '',
+    toast: !!data.toast,
+    toastText: data.toastText || 'Готово!',
+    alert: !!data.alert,
+    alertText: data.alertText || 'Готово',
+    sleep: !!data.sleep,
+    sleepMs: data.sleepMs || 200,
+    speed: data.speed || 2,
+    customCode: data.customCode || ''
+  };
+  modules.push(m);
+  renderMod(m);
+  gen();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMod(m) {
+  const card = document.createElement('div');
+  card.className = 'module-card';
+  card.dataset.id = m.id;
+
+  let body = '';
+  if (m.kind === 'speed') {
+    body = `
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Название</label>
+          <input type="text" class="mod-name" value="${esc(m.name)}">
+        </div>
+        <div class="form-group">
+          <label>Множитель скорости</label>
+          <input type="number" class="mod-speed" value="${m.speed}" step="0.1" min="0.1" max="20">
+        </div>
+      </div>`;
+  } else if (m.kind === 'custom') {
+    body = `
+      <div class="form-group">
+        <label>Название</label>
+        <input type="text" class="mod-name" value="${esc(m.name)}">
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label>Lua-код</label>
+        <textarea class="mod-custom" rows="4">${esc(m.customCode)}</textarea>
+      </div>`;
+  } else {
+    body = `
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Название</label>
+          <input type="text" class="mod-name" value="${esc(m.name)}">
+        </div>
+        <div class="form-group">
+          <label>Искомое значение</label>
+          <input type="text" class="mod-search" value="${esc(m.searchValue)}">
+        </div>
+        <div class="form-group">
+          <label>Тип</label>
+          <select class="mod-type">
+            ${['BYTE','WORD','DWORD','FLOAT','QWORD','DOUBLE','XOR'].map(t =>
+              `<option value="${t}" ${m.dataType===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Offset (Hex)</label>
+          <input type="text" class="mod-offset" value="${esc(m.offset)}" placeholder="0x14">
+        </div>
+        <div class="form-group">
+          <label>Новое значение</label>
+          <input type="text" class="mod-edit" value="${esc(m.editValue)}">
+        </div>
+        <div class="form-group">
+          <label>Refine (опционально)</label>
+          <input type="text" class="mod-refine" value="${esc(m.refine)}" placeholder="уточнить поиск">
+        </div>
+      </div>
+      <div class="checkbox-row" style="margin-top:10px">
+        <label><input type="checkbox" class="mod-freeze" ${m.freeze?'checked':''}> Заморозить</label>
+      </div>`;
+  }
+
+  card.innerHTML = `
+    <div class="module-header">
+      <span class="module-num">#${modules.indexOf(m)+1} ${m.kind==='speed'?'⚡':m.kind==='custom'?'📝':'🔎'}</span>
+      <button class="remove-btn">Удалить</button>
+    </div>
+    ${body}
+    <div class="optional-block">
+      <div class="optional-item">
+        <label style="display:flex;align-items:center;gap:6px;min-width:110px;font-size:0.84rem;cursor:pointer">
+          <input type="checkbox" class="mod-toast" ${m.toast?'checked':''}> Toast
+        </label>
+        <input type="text" class="mod-toast-text" value="${esc(m.toastText)}" ${m.toast?'':'disabled'}>
+      </div>
+      <div class="optional-item">
+        <label style="display:flex;align-items:center;gap:6px;min-width:110px;font-size:0.84rem;cursor:pointer">
+          <input type="checkbox" class="mod-alert" ${m.alert?'checked':''}> Alert
+        </label>
+        <input type="text" class="mod-alert-text" value="${esc(m.alertText)}" ${m.alert?'':'disabled'}>
+      </div>
+      <div class="optional-item">
+        <label style="display:flex;align-items:center;gap:6px;min-width:110px;font-size:0.84rem;cursor:pointer">
+          <input type="checkbox" class="mod-sleep" ${m.sleep?'checked':''}> Sleep
+        </label>
+        <input type="number" class="mod-sleep-ms" value="${m.sleepMs}" min="0" step="50" style="max-width:110px" ${m.sleep?'':'disabled'}>
+      </div>
+    </div>`;
+
+  listEl.appendChild(card);
+
+  card.querySelector('.remove-btn').onclick = () => {
+    modules = modules.filter(x => x.id !== m.id);
+    card.remove();
+    renum();
+    gen();
+  };
+
+  card.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('input', () => sync(m.id, card));
+    el.addEventListener('change', () => {
+      if (el.classList.contains('mod-toast')) card.querySelector('.mod-toast-text').disabled = !el.checked;
+      if (el.classList.contains('mod-alert')) card.querySelector('.mod-alert-text').disabled = !el.checked;
+      if (el.classList.contains('mod-sleep')) card.querySelector('.mod-sleep-ms').disabled = !el.checked;
+      sync(m.id, card);
+    });
+  });
+}
+
+function sync(id, card) {
+  const m = modules.find(x => x.id === id);
+  if (!m) return;
+  m.name = card.querySelector('.mod-name')?.value ?? m.name;
+  if (m.kind === 'speed') {
+    m.speed = parseFloat(card.querySelector('.mod-speed')?.value) || 1;
+  } else if (m.kind === 'custom') {
+    m.customCode = card.querySelector('.mod-custom')?.value ?? '';
+  } else {
+    m.searchValue = card.querySelector('.mod-search')?.value ?? '';
+    m.dataType = card.querySelector('.mod-type')?.value ?? 'DWORD';
+    m.offset = (card.querySelector('.mod-offset')?.value || '').trim();
+    m.editValue = card.querySelector('.mod-edit')?.value ?? '';
+    m.refine = card.querySelector('.mod-refine')?.value ?? '';
+    m.freeze = !!card.querySelector('.mod-freeze')?.checked;
+  }
+  m.toast = !!card.querySelector('.mod-toast')?.checked;
+  m.toastText = card.querySelector('.mod-toast-text')?.value ?? '';
+  m.alert = !!card.querySelector('.mod-alert')?.checked;
+  m.alertText = card.querySelector('.mod-alert-text')?.value ?? '';
+  m.sleep = !!card.querySelector('.mod-sleep')?.checked;
+  m.sleepMs = parseInt(card.querySelector('.mod-sleep-ms')?.value, 10) || 0;
+  renum();
+  gen();
+}
+
+function renum() {
+  document.querySelectorAll('.module-card').forEach((c, i) => {
+    const n = c.querySelector('.module-num');
+    if (n) {
+      const kind = modules[i]?.kind;
+      const icon = kind === 'speed' ? '⚡' : kind === 'custom' ? '📝' : '🔎';
+      n.textContent = `#${i+1} ${icon}`;
+    }
+  });
+}
+
+function luaEsc(s) {
+  return String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n').replace(/\r/g,'');
+}
+function isNum(v) { return /^-?\d+(\.\d+)?$/.test(String(v).trim()); }
+
+function gen() {
+  const title = document.getElementById('menuTitle').value || 'Menu';
+  const greetOn = document.getElementById('enableGreeting').checked;
+  const greetType = document.querySelector('input[name="greetType"]:checked')?.value || 'toast';
+  const greetText = document.getElementById('greetText').value || '';
+  const sleepOn = document.getElementById('enableSleep').checked;
+  const sleepMs = parseInt(document.getElementById('sleepMs').value, 10) || 0;
+  const clearOn = document.getElementById('enableClear').checked;
+  const hideOn = document.getElementById('enableHide').checked;
+  const range = document.getElementById('memRange').value;
+  const limit = parseInt(document.getElementById('resultsLimit').value, 10) || 100;
+
+  const L = [];
+  L.push('-- Script Generator for Game Guardian');
+  L.push('-- Generated script');
+  L.push('');
+
+  if (greetOn && greetText.trim()) {
+    const full = greetText.trim() + ' by Padington';
+    L.push(greetType === 'alert' ? `gg.alert("${luaEsc(full)}")` : `gg.toast("${luaEsc(full)}")`);
+  }
+  if (hideOn) L.push('gg.setVisible(false)');
+  if (sleepOn && sleepMs > 0) L.push(`gg.sleep(${sleepMs})`);
+  if (clearOn) L.push('gg.clearResults()');
+  if (range) L.push(`gg.setRanges(${range})`);
+
+  if (!modules.length) {
+    L.push('', '-- Добавьте модули в конструкторе');
+    preview.textContent = L.join('\n');
+    return L.join('\n');
+  }
+
+  L.push('');
+  L.push('while true do');
+  L.push('  local menu = gg.choice({');
+  modules.forEach((m, i) => {
+    L.push(`    "${luaEsc(m.name)}"${i < modules.length - 1 ? ',' : ''}`);
+  });
+  L.push('    "Выход"');
+  L.push(`  }, nil, "${luaEsc(title)}")`);
+  L.push('');
+  L.push('  if menu == nil then');
+  L.push('  elseif menu == ' + (modules.length + 1) + ' then');
+  L.push('    break');
+
+  modules.forEach((m, i) => {
+    const idx = i + 1;
+    L.push(`  elseif menu == ${idx} then`);
+
+    if (m.sleep && m.sleepMs > 0) L.push(`    gg.sleep(${m.sleepMs})`);
+
+    if (m.kind === 'speed') {
+      L.push(`    gg.setSpeed(${m.speed})`);
+    } else if (m.kind === 'custom') {
+      const lines = (m.customCode || '').split('\n');
+      lines.forEach(line => L.push('    ' + line));
+    } else {
+      const type = 'gg.TYPE_' + m.dataType;
+      L.push('    gg.clearResults()');
+      if (range) L.push(`    gg.setRanges(${range})`);
+      L.push(`    gg.searchNumber("${luaEsc(m.searchValue)}", ${type})`);
+      if (m.refine && m.refine.trim()) {
+        L.push(`    gg.refineNumber("${luaEsc(m.refine.trim())}", ${type})`);
+      }
+      L.push(`    local r = gg.getResults(${limit})`);
+      L.push('    if #r == 0 then');
+      L.push('      gg.toast("Значения не найдены")');
+      L.push('    else');
+
+      const hasOff = m.offset && !['0','0x0','0x00','0X0'].includes(m.offset);
+      const valExpr = isNum(m.editValue) ? m.editValue : `"${luaEsc(m.editValue)}"`;
+
+      if (hasOff) {
+        const off = /^0[xX]/.test(m.offset) ? m.offset : '0x' + m.offset;
+        L.push('      local patches = {}');
+        L.push('      for i, v in ipairs(r) do');
+        L.push('        patches[i] = {');
+        L.push(`          address = v.address + ${off},`);
+        L.push(`          flags = ${type},`);
+        L.push(`          value = ${valExpr}${m.freeze ? ',' : ''}`);
+        if (m.freeze) L.push('          freeze = true');
+        L.push('        }');
+        L.push('      end');
+        L.push('      gg.setValues(patches)');
+        if (m.freeze) L.push('      gg.addListItems(patches)');
+      } else if (m.freeze) {
+        L.push('      local t = {}');
+        L.push('      for i, v in ipairs(r) do');
+        L.push('        t[i] = {');
+        L.push('          address = v.address,');
+        L.push(`          flags = ${type},`);
+        L.push(`          value = ${valExpr},`);
+        L.push('          freeze = true');
+        L.push('        }');
+        L.push('      end');
+        L.push('      gg.setValues(t)');
+        L.push('      gg.addListItems(t)');
+      } else {
+        L.push(`      gg.editAll("${luaEsc(m.editValue)}", ${type})`);
+      }
+      L.push('      gg.clearResults()');
+      L.push('    end');
+    }
+
+    if (m.toast && m.toastText.trim()) L.push(`    gg.toast("${luaEsc(m.toastText.trim())}")`);
+    if (m.alert && m.alertText.trim()) L.push(`    gg.alert("${luaEsc(m.alertText.trim())}")`);
+  });
+
+  L.push('  end');
+  L.push('  gg.sleep(150)');
+  L.push('end');
+
+  const code = L.join('\n');
+  preview.textContent = code;
+  return code;
+}
+
+function downloadLua(content, name) {
+  const blob = new Blob([content], { type: 'application/x-lua;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => notify('Скопировано')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    notify('Скопировано');
+  });
+}
+
+document.getElementById('copyCodeBtn').onclick = () => copyText(gen());
+document.getElementById('downloadBtn').onclick = () => {
+  let name = document.getElementById('fileName').value.trim() || 'script.lua';
+  if (!name.toLowerCase().endsWith('.lua')) name += '.lua';
+  downloadLua(gen(), name);
+  notify('Скачано: ' + name);
+};
+document.getElementById('refreshCodeBtn').onclick = () => { gen(); notify('Код обновлён'); };
+
+const TEMPLATES = [
+  { icon: '🔫', name: 'Бесконечные патроны', desc: 'DWORD + freeze', data: { name: 'Бесконечные патроны', searchValue: '30', dataType: 'DWORD', editValue: '999', freeze: true, toast: true, toastText: 'Патроны ∞' }},
+  { icon: '❤️', name: 'Бессмертие (HP)', desc: 'DWORD freeze', data: { name: 'Бессмертие', searchValue: '100', dataType: 'DWORD', editValue: '99999', freeze: true, toast: true, toastText: 'HP заморожен' }},
+  { icon: '💰', name: 'Деньги / Валюта', desc: 'DWORD edit', data: { name: 'Много денег', searchValue: '1000', dataType: 'DWORD', editValue: '999999', toast: true, toastText: 'Баланс изменён' }},
+  { icon: '⚡', name: 'Speed x3', desc: 'gg.setSpeed', data: { kind: 'speed', name: 'Ускорение x3', speed: 3, toast: true, toastText: 'Speed x3' }},
+  { icon: '🐢', name: 'Замедление x0.5', desc: 'gg.setSpeed', data: { kind: 'speed', name: 'Замедление', speed: 0.5, toast: true, toastText: 'Slow-mo' }},
+  { icon: '🎯', name: 'Точность (Float)', desc: 'FLOAT', data: { name: 'Точность / Recoil', searchValue: '1.0', dataType: 'FLOAT', editValue: '0.01', toast: true, toastText: 'Recoil off' }},
+  { icon: '📐', name: 'Смещение +0x10', desc: 'offset edit', data: { name: 'Patch +0x10', searchValue: '100', dataType: 'DWORD', offset: '0x10', editValue: '9999', toast: true, toastText: 'Offset patch' }},
+  { icon: '🧊', name: 'Заморозка значения', desc: 'freeze list', data: { name: 'Freeze value', searchValue: '50', dataType: 'DWORD', editValue: '50', freeze: true, toast: true, toastText: 'Заморожено' }},
+  { icon: '🔎', name: 'Group Search', desc: '100;50;25', data: { name: 'Group search', searchValue: '100;50;25::', dataType: 'DWORD', editValue: '999', toast: true, toastText: 'Group edit' }},
+  { icon: '📝', name: 'Custom блок', desc: 'свой код', data: { kind: 'custom', name: 'Мой код', customCode: 'gg.toast("Hello from custom")\n-- ваш код здесь' }},
+];
+
+const tGrid = document.getElementById('templatesGrid');
+TEMPLATES.forEach(t => {
+  const el = document.createElement('div');
+  el.className = 'template-card';
+  el.innerHTML = `<div class="t-icon">${t.icon}</div><div class="t-name">${t.name}</div><div class="t-desc">${t.desc}</div>`;
+  el.onclick = () => {
+    addMod({ ...t.data });
+    tabBtns.forEach(b => b.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-tab="builder"]').classList.add('active');
+    document.getElementById('panel-builder').classList.add('active');
+    notify('Шаблон добавлен: ' + t.name);
+  };
+  tGrid.appendChild(el);
+});
+
+document.getElementById('analyzeBtn').onclick = () => {
+  const src = document.getElementById('analyzerInput').value;
+  if (!src.trim()) return notify('Вставьте код');
+  const patterns = {
+    searchNumber: /gg\.searchNumber\s*\(/g,
+    refineNumber: /gg\.refineNumber\s*\(/g,
+    editAll: /gg\.editAll\s*\(/g,
+    setValues: /gg\.setValues\s*\(/g,
+    getResults: /gg\.getResults\s*\(/g,
+    alert: /gg\.alert\s*\(/g,
+    toast: /gg\.toast\s*\(/g,
+    sleep: /gg\.sleep\s*\(/g,
+    freeze: /freeze\s*=\s*true/g,
+    setSpeed: /gg\.setSpeed\s*\(/g,
+    setRanges: /gg\.setRanges\s*\(/g,
+    choice: /gg\.choice\s*\(/g,
+    addListItems: /gg\.addListItems\s*\(/g,
+  };
+  const stats = {};
+  for (const [k, re] of Object.entries(patterns)) {
+    stats[k] = (src.match(re) || []).length;
+  }
+  const items = [
+    { icon: '🔎', v: stats.searchNumber, l: 'searchNumber' },
+    { icon: '🔁', v: stats.refineNumber, l: 'refineNumber' },
+    { icon: '✏️', v: stats.editAll, l: 'editAll' },
+    { icon: '📍', v: stats.setValues, l: 'setValues' },
+    { icon: '📋', v: stats.getResults, l: 'getResults' },
+    { icon: '💬', v: stats.alert, l: 'alert' },
+    { icon: '🔔', v: stats.toast, l: 'toast' },
+    { icon: '⏱️', v: stats.sleep, l: 'sleep' },
+    { icon: '❄️', v: stats.freeze, l: 'freeze' },
+    { icon: '⚡', v: stats.setSpeed, l: 'setSpeed' },
+    { icon: '🗺️', v: stats.setRanges, l: 'setRanges' },
+    { icon: '📜', v: stats.choice, l: 'choice' },
+    { icon: '📌', v: stats.addListItems, l: 'addListItems' },
+  ];
+  document.getElementById('statsGrid').innerHTML = items.map(i =>
+    `<div class="stat-card"><div class="stat-icon">${i.icon}</div><div class="stat-value">${i.v}</div><div class="stat-label">${i.l}</div></div>`
+  ).join('');
+
+  const tips = [];
+  if (stats.searchNumber && !stats.sleep) tips.push('💡 Рекомендуется добавить gg.sleep() после поиска на больших списках.');
+  if (stats.editAll && stats.freeze) tips.push('💡 При freeze обычно удобнее setValues + addListItems, чем editAll.');
+  if (!stats.setRanges && stats.searchNumber) tips.push('💡 Указание gg.setRanges() ускоряет поиск и уменьшает мусор.');
+  if (stats.choice === 0 && stats.searchNumber) tips.push('💡 Скрипт без меню (gg.choice) — возможно, стоит обернуть в цикл.');
+  document.getElementById('analyzeTips').innerHTML = tips.length
+    ? '<div style="color:var(--muted);font-size:0.88rem;line-height:1.7">' + tips.join('<br>') + '</div>'
+    : '';
+  document.getElementById('analyzerResults').style.display = 'block';
+  notify('Анализ готов');
+};
+document.getElementById('clearAnalyzeBtn').onclick = () => {
+  document.getElementById('analyzerInput').value = '';
+  document.getElementById('analyzerResults').style.display = 'none';
+};
+
+function toHex(str) {
+  let h = '';
+  for (let i = 0; i < str.length; i++) h += '\\x' + str.charCodeAt(i).toString(16).padStart(2, '0');
+  return h;
+}
+
+document.getElementById('obfuscateBtn').onclick = () => {
+  let src = document.getElementById('obfInput').value;
+  if (!src.trim()) return notify('Вставьте код');
+  const level = document.getElementById('obfLevel').value;
+  if (level === 'hexmin' || level === 'double') {
+    src = src.replace(/--[^\n]*/g, '').replace(/\n\s*\n/g, '\n').trim();
+  }
+  let result;
+  if (level === 'double') {
+    const inner = `load("${toHex(src)}")()`;
+    result = `load("${toHex(inner)}")()`;
+  } else {
+    result = `local code = "${toHex(src)}"\nload(code)()`;
+  }
+  document.getElementById('obfPreview').textContent = result;
+  document.getElementById('obfResultCard').style.display = 'block';
+  notify('Зашифровано');
+};
+document.getElementById('clearObfBtn').onclick = () => {
+  document.getElementById('obfInput').value = '';
+  document.getElementById('obfResultCard').style.display = 'none';
+};
+document.getElementById('copyObfBtn').onclick = () => copyText(document.getElementById('obfPreview').textContent);
+document.getElementById('downloadObfBtn').onclick = () => {
+  downloadLua(document.getElementById('obfPreview').textContent, 'encrypted_script.lua');
+  notify('Файл скачан');
+};
+
+document.querySelectorAll('#docsNav button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#docsNav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.doc-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('doc-' + btn.dataset.doc).classList.add('active');
+  };
+});
+
+addMod({
+  name: 'Бесконечные патроны',
+  searchValue: '30',
+  dataType: 'DWORD',
+  editValue: '999',
+  freeze: true,
+  toast: true,
+  toastText: 'Патроны установлены!'
+});
+gen();
+
+})();
+</script>
+</body>
+</html>
